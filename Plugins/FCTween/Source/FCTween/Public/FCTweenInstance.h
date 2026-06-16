@@ -1,9 +1,11 @@
-﻿// MIT License - Copyright 2026 Jared Cook
+﻿// MIT License - Copyright (c) 2022 Jared Cook
+
 #pragma once
 
 #include "CoreMinimal.h"
 #include "FCEasing.h"
 
+class UFCTweenUObject;
 UENUM()
 enum class EDelayState : uint8
 {
@@ -28,7 +30,6 @@ public:
 	uint8 bIsPlayingYoyo : 1;
 	uint8 bCanTickDuringPause : 1;
 	uint8 bUseGlobalTimeDilation : 1;
-	uint8 bIsComplete : 1;
 
 	int NumLoops;
 	int NumLoopsCompleted;
@@ -42,7 +43,6 @@ public:
 	EDelayState DelayState;
 
 private:
-	TFunction<void()> OnStart;
 	TFunction<void()> OnYoyo;
 	TFunction<void()> OnLoop;
 	TFunction<void()> OnComplete;
@@ -59,84 +59,80 @@ public:
 	FCTweenInstance* SetDelay(float InDelaySecs);
 
 	/**
-	 * How many times to replay the loop. A single loop includes the optional yoyo. Use -1 for infinity
+	 * @brief How many times to replay the loop (yoyo included). use -1 for infinity
 	 */
 	FCTweenInstance* SetLoops(int InNumLoops);
 
 	/**
-	 * seconds to wait before starting another loop
+	 * @brief seconds to wait before starting another loop
 	 */
 	FCTweenInstance* SetLoopDelay(float InLoopDelaySecs);
 
 	/**
-	 * interpolate backwards after reaching the end
+	 * @brief interpolate backwards after reaching the end
 	 */
 	FCTweenInstance* SetYoyo(bool bInShouldYoyo);
 
 	/**
-	 * seconds to wait before yoyo-ing backwards
+	 * @brief seconds to wait before yoyo-ing backwards
 	 */
 	FCTweenInstance* SetYoyoDelay(float InYoyoDelaySecs);
 
 	/**
-	 * multiply the time delta by this number to speed up or slow down the tween. Only positive numbers allowed.
+	 * @brief multiply the time delta by this number to speed up or slow down the tween. Only positive numbers allowed.
 	 */
 	FCTweenInstance* SetTimeMultiplier(float InTimeMultiplier);
 
 	/**
-	 * set EaseParam1 to fine-tune specific equations. Elastic: Amplitude (1.0) / Back: Overshoot (1.70158) / Stepped: Steps
+	 * @brief set EaseParam1 to fine-tune specific equations. Elastic: Amplitude (1.0) / Back: Overshoot (1.70158) / Stepped: Steps
 	 * (10) / Smoothstep: x0 (0)
 	 */
 	FCTweenInstance* SetEaseParam1(float InEaseParam1);
 
 	/**
-	 * set EaseParam2 to fine-tune specific equations. Elastic: Period (0.2) / Smoothstep: x1 (1)
+	 * @brief set EaseParam2 to fine-tune specific equations. Elastic: Period (0.2) / Smoothstep: x1 (1)
 	 */
 	FCTweenInstance* SetEaseParam2(float InEaseParam2);
 
 	/**
-	 * let this tween run while the game is paused
+	 * @brief let this tween run while the game is paused
 	 */
 	FCTweenInstance* SetCanTickDuringPause(bool bInCanTickDuringPause);
 
 	/**
-	 * let this tween run while the game is paused
+	 * @brief let this tween run while the game is paused
 	 */
 	FCTweenInstance* SetUseGlobalTimeDilation(bool bInUseGlobalTimeDilation);
 
 	/**
-	 * Automatically recycles this instance after the tween is complete (or Destroy() is called)
+	 * @brief Automatically recycles this instance after tween is complete (Stop() is called)
 	 */
 	FCTweenInstance* SetAutoDestroy(bool bInShouldAutoDestroy);
 
-	/**
-	 * This lambda will be called when the tween first begins, after the initial Delay timer. Called again if Restart() is triggered. Not called on loops.
-	 */
-	FCTweenInstance* SetOnStart(TFunction<void()> Handler);
 	FCTweenInstance* SetOnYoyo(TFunction<void()> Handler);
 	FCTweenInstance* SetOnLoop(TFunction<void()> Handler);
 	FCTweenInstance* SetOnComplete(TFunction<void()> Handler);
 
 	/**
-	 * Reset variables and start a fresh tween
+	 * @brief Reset variables and start a fresh tween
 	 */
 	void InitializeSharedMembers(float InDurationSecs, EFCEase InEaseType);
 	/**
-	 * called on the first frame this tween is updated, to set up any options that have been defined
+	 * @brief called on the first frame this tween is updated, to set up any options that have been defined
 	 */
 	void Start();
 	/**
-	 * Takes the existing tween settings and restarts the timer, to play it again from the start
+	 * @brief Takes the existing tween settings and restarts the timer, to play it again from the start
 	 */
 	void Restart();
 	/**
-	 * Stop tweening and mark this instance for recycling
+	 * @brief stop tweening and mark this instance for recycling
 	 */
 	void Destroy();
 	/**
-	 * Stop tweening and mark this instance for recycling. Same as Destroy().
+	 * @brief Get a UObject wrapper for this tween. It will recycle the tween automatically when it's Outer is destroyed
 	 */
-	void Stop();
+	UFCTweenUObject* CreateUObject(UObject* Outer = (UObject*) GetTransientPackage());
 	void Pause();
 	void Unpause();
 	void Update(float UnscaledDeltaSeconds, float DilatedDeltaSeconds, bool bIsGamePaused = false);
@@ -148,5 +144,4 @@ private:
 	void CompleteLoop();
 	void StartNewLoop();
 	void StartYoyo();
-
 };

@@ -1,8 +1,6 @@
-﻿// MIT License - Copyright 2026 Jared Cook
-#include "FCTweenInstance.h"
+﻿#include "FCTweenInstance.h"
 
-#include "FCTween.h"
-#include "Runtime/Launch/Resources/Version.h"
+#include "FCTweenUObject.h"
 
 FCTweenInstance* FCTweenInstance::SetDelay(float InDelaySecs)
 {
@@ -70,12 +68,6 @@ FCTweenInstance* FCTweenInstance::SetAutoDestroy(bool bInShouldAutoDestroy)
 	return this;
 }
 
-FCTweenInstance* FCTweenInstance::SetOnStart(TFunction<void()> Handler)
-{
-	this->OnStart = MoveTemp(Handler);
-	return this;
-}
-
 FCTweenInstance* FCTweenInstance::SetOnYoyo(TFunction<void()> Handler)
 {
 	this->OnYoyo = MoveTemp(Handler);
@@ -115,7 +107,6 @@ void FCTweenInstance::InitializeSharedMembers(float InDurationSecs, EFCEase InEa
 	bIsPlayingYoyo = false;
 	bCanTickDuringPause = false;
 	bUseGlobalTimeDilation = true;
-	bIsComplete = false;
 
 	NumLoops = 1;
 	NumLoopsCompleted = 0;
@@ -129,12 +120,10 @@ void FCTweenInstance::InitializeSharedMembers(float InDurationSecs, EFCEase InEa
 	DelayState = EDelayState::None;
 
 #if ENGINE_MAJOR_VERSION < 5
-	OnStart = nullptr;
 	OnYoyo = nullptr;
 	OnLoop = nullptr;
 	OnComplete = nullptr;
 #else
-	OnStart.Reset();
 	OnYoyo.Reset();
 	OnLoop.Reset();
 	OnComplete.Reset();
@@ -143,7 +132,6 @@ void FCTweenInstance::InitializeSharedMembers(float InDurationSecs, EFCEase InEa
 
 void FCTweenInstance::Start()
 {
-	bIsComplete = false;
 	DelayCounter = DelaySecs;
 	if (DelayCounter > 0)
 	{
@@ -169,36 +157,25 @@ void FCTweenInstance::Restart()
 
 void FCTweenInstance::Destroy()
 {
-	if (!FCTween::IsInitialized())
-	{
-		return;
-	}
-	if (!bIsActive)
-	{
-		// already destroyed
-		return;
-	}
-
 	// mark for recycling
 	bIsActive = false;
-	bIsComplete = true;
 
 #if ENGINE_MAJOR_VERSION < 5
-	OnStart = nullptr;
-	OnLoop = nullptr;
-	OnYoyo = nullptr;
+	OnLoop  = nullptr;
+	OnYoyo  = nullptr;
 	OnComplete = nullptr;
 #else
-	OnStart.Reset();
 	OnLoop.Reset();
 	OnYoyo.Reset();
 	OnComplete.Reset();
 #endif
 }
 
-void FCTweenInstance::Stop()
+UFCTweenUObject* FCTweenInstance::CreateUObject(UObject* Outer)
 {
-	Destroy();
+	UFCTweenUObject* Wrapper = NewObject<UFCTweenUObject>(Outer);
+	Wrapper->SetTweenInstance(this);
+	return Wrapper;
 }
 
 void FCTweenInstance::Pause()
@@ -213,11 +190,7 @@ void FCTweenInstance::Unpause()
 
 void FCTweenInstance::Update(float UnscaledDeltaSeconds, float DilatedDeltaSeconds, bool bIsGamePaused)
 {
-	if (!bIsActive)
-	{
-		return;
-	}
-	if (bIsPaused || (bIsGamePaused && !bCanTickDuringPause))
+	if (bIsPaused || !bIsActive || (bIsGamePaused && !bCanTickDuringPause))
 	{
 		return;
 	}
@@ -230,29 +203,19 @@ void FCTweenInstance::Update(float UnscaledDeltaSeconds, float DilatedDeltaSecon
 		DelayCounter -= DeltaTime;
 		if (DelayCounter <= 0)
 		{
-			float CatchupTime = FMath::Abs(DelayCounter);
 			switch (DelayState)
 			{
-				case EDelayState::Start:
-					if (OnStart)
-					{
-						OnStart();
-					}
-					Counter += CatchupTime;
-					break;
 				case EDelayState::Loop:
 					if (OnLoop)
 					{
 						OnLoop();
 					}
-					Counter += CatchupTime;
 					break;
 				case EDelayState::Yoyo:
 					if (OnYoyo)
 					{
 						OnYoyo();
 					}
-					Counter -= CatchupTime;
 					break;
 			}
 		}
@@ -305,7 +268,6 @@ void FCTweenInstance::CompleteLoop()
 	}
 	else
 	{
-		bIsComplete = true;
 		if (OnComplete)
 		{
 			OnComplete();

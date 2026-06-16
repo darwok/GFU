@@ -1,52 +1,32 @@
-﻿// MIT License - Copyright 2026 Jared Cook
-#include "FCTweenSubsystem.h"
+﻿#include "FCTweenSubsystem.h"
 
 #include "FCTween.h"
 #include "Kismet/GameplayStatics.h"
-#include "Runtime/Launch/Resources/Version.h"
-
-bool UFCTweenSubsystem::ShouldCreateSubsystem(UObject* Outer) const
-{
-	return !FCTween::IsInitialized();
-}
 
 void UFCTweenSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
 	Super::Initialize(Collection);
-
-	bInitialized = true;
-	
 	LastTickedFrame = GFrameCounter;
 
 #if ENGINE_MAJOR_VERSION < 5
-	if (GetWorld() != nullptr)
+	if(GetWorld() != nullptr)
 	{
 		LastRealTimeSeconds = GetWorld()->RealTimeSeconds;
 	}
 #endif
-
-	FCTween::Initialize();
+	
+#if WITH_EDITOR
+	FCTween::ClearActiveTweens();
+#endif
 }
 
 void UFCTweenSubsystem::Deinitialize()
 {
+	Super::Deinitialize();
 #if WITH_EDITOR
 	FCTween::CheckTweenCapacity();
 	FCTween::ClearActiveTweens();
 #endif
-
-	bInitialized = false;
-	
-	Super::Deinitialize();
-}
-
-void UFCTweenSubsystem::FinishDestroy()
-{
-	if (!IsTemplate())
-	{
-		FCTween::Deinitialize();
-	}
-	Super::FinishDestroy();
 }
 
 void UFCTweenSubsystem::Tick(float DeltaTime)
@@ -70,17 +50,7 @@ void UFCTweenSubsystem::Tick(float DeltaTime)
 
 ETickableTickType UFCTweenSubsystem::GetTickableTickType() const
 {
-	if (IsTemplate())
-	{
-		return ETickableTickType::Never;
-	}
-
-	return ETickableTickType::Conditional;
-}
-
-bool UFCTweenSubsystem::IsAllowedToTick() const
-{
-	return bInitialized;
+	return ETickableTickType::Always;
 }
 
 TStatId UFCTweenSubsystem::GetStatId() const

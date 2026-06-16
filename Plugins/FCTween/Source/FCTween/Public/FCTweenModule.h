@@ -1,8 +1,7 @@
-﻿// MIT License - Copyright 2026 Jared Cook
+﻿// MIT License - Copyright (c) 2022 Jared Cook
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Modules/ModuleInterface.h"
 
 class FCTweenModule : public IModuleInterface
 {

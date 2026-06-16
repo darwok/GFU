@@ -1,8 +1,6 @@
-﻿// MIT License - Copyright 2026 Jared Cook
-#include "Blueprints/FCTweenBPAction.h"
+﻿#include "Blueprints/FCTweenBPAction.h"
 
 #include "FCTween.h"
-#include "Runtime/Launch/Resources/Version.h"
 
 void UFCTweenBPAction::Activate()
 {
@@ -54,24 +52,16 @@ void UFCTweenBPAction::Activate()
 
 	if (OnLoop.IsBound())
 	{
-		TweenInstance->SetOnLoop(
-			[this]()
-			{
-				OnLoop.Broadcast();
-			});
+		TweenInstance->SetOnLoop([&]() { OnLoop.Broadcast(); });
 	}
 	if (OnYoyo.IsBound())
 	{
-		TweenInstance->SetOnYoyo(
-			[this]()
-			{
-				OnYoyo.Broadcast();
-			});
+		TweenInstance->SetOnYoyo([&]() { OnYoyo.Broadcast(); });
 	}
 	if (OnComplete.IsBound())
 	{
 		TweenInstance->SetOnComplete(
-			[this]()
+			[&]()
 			{
 				OnComplete.Broadcast();
 				Stop();
@@ -90,8 +80,8 @@ FCTweenInstance* UFCTweenBPAction::CreateTweenCustomCurve()
 	return nullptr;
 }
 
-void UFCTweenBPAction::SetSharedTweenProperties(
-	float InDurationSecs, float InDelay, int InLoops, float InLoopDelay, bool InbYoyo, float InYoyoDelay, bool bInCanTickDuringPause, bool bInUseGlobalTimeDilation)
+void UFCTweenBPAction::SetSharedTweenProperties(float InDurationSecs, float InDelay, int InLoops, float InLoopDelay, bool InbYoyo,
+	float InYoyoDelay, bool bInCanTickDuringPause, bool bInUseGlobalTimeDilation)
 {
 	TweenInstance = nullptr;
 	bUseCustomCurve = false;
@@ -108,12 +98,12 @@ void UFCTweenBPAction::SetSharedTweenProperties(
 
 void UFCTweenBPAction::BeginDestroy()
 {
-	if (FCTween::IsInitialized() && TweenInstance != nullptr)
+	Super::BeginDestroy();
+	if (TweenInstance != nullptr)
 	{
 		TweenInstance->Destroy();
 		TweenInstance = nullptr;
 	}
-	Super::BeginDestroy();
 }
 
 void UFCTweenBPAction::Pause()
@@ -140,7 +130,7 @@ void UFCTweenBPAction::Restart()
 	}
 }
 
-void UFCTweenBPAction::Destroy()
+void UFCTweenBPAction::Stop()
 {
 	if (TweenInstance)
 	{
@@ -153,11 +143,6 @@ void UFCTweenBPAction::Destroy()
 		MarkAsGarbage();
 #endif
 	}
-}
-
-void UFCTweenBPAction::Stop()
-{
-	Destroy();
 }
 
 void UFCTweenBPAction::SetTimeMultiplier(float Multiplier)

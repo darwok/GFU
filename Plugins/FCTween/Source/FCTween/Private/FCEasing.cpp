@@ -1,8 +1,4 @@
-﻿// MIT License - Copyright 2026 Jared Cook
-#include "FCEasing.h"
-
-#include "PhaserEasing.h"
-#include "RobertPennerEasing.h"
+﻿#include "FCEasing.h"
 
 const float BACK_INOUT_OVERSHOOT_MODIFIER = 1.525f;
 const float BOUNCE_R = 1.0f / 2.75f;		  // reciprocal
@@ -174,160 +170,374 @@ float FCEasing::EaseLinear(float t)
 
 float FCEasing::EaseSmoothstep(float t, float x0, float x1)
 {
-	return RobertPennerEasing::EaseSmoothstep(t, x0, x1);
+	float x = FMath::Clamp<float>((t - x0) / (x1 - x0), 0.0f, 1.0f);
+	return x * x * (3.0f - 2.0f * x);
 }
 
 float FCEasing::EaseStepped(float t, int Steps)
 {
-	return PhaserEasing::EaseStepped(t, Steps);
+	if (t <= 0)
+	{
+		return 0;
+	}
+	else if (t >= 1)
+	{
+		return 1;
+	}
+	else
+	{
+		return FMath::FloorToFloat(Steps * t) / Steps;
+	}
 }
 
 float FCEasing::EaseInSine(float t)
 {
-	return RobertPennerEasing::EaseInSine(t);
+	return 1 - FMath::Cos(t * PI * .5f);
 }
 
 float FCEasing::EaseOutSine(float t)
 {
-	return RobertPennerEasing::EaseOutSine(t);
+	return FMath::Sin(t * PI * .5f);
 }
 
 float FCEasing::EaseInOutSine(float t)
 {
-	return RobertPennerEasing::EaseInOutSine(t);
+	return 0.5f * (1 - FMath::Cos(t * PI));
 }
 
 float FCEasing::EaseInQuad(float t)
 {
-	return RobertPennerEasing::EaseInQuad(t);
+	return t * t;
 }
 
 float FCEasing::EaseOutQuad(float t)
 {
-	return RobertPennerEasing::EaseOutQuad(t);
+	return t * (2 - t);
 }
 
 float FCEasing::EaseInOutQuad(float t)
 {
-	return RobertPennerEasing::EaseInOutQuad(t);
+	float t2 = t * 2;
+	if (t2 < 1)
+	{
+		return t * t2;
+	}
+	else
+	{
+		float m = t - 1;
+		return 1 - m * m * 2;
+	}
 }
 
 float FCEasing::EaseInCubic(float t)
 {
-	return RobertPennerEasing::EaseInCubic(t);
+	return t * t * t;
 }
 
 float FCEasing::EaseOutCubic(float t)
 {
-	return RobertPennerEasing::EaseOutCubic(t);
+	float m = t - 1;
+	return 1 + m * m * m;
 }
 
 float FCEasing::EaseInOutCubic(float t)
 {
-	return RobertPennerEasing::EaseInOutCubic(t);
+	float t2 = t * 2;
+	if (t2 < 1)
+	{
+		return t * t2 * t2;
+	}
+	else
+	{
+		float m = t - 1;
+		return 1 + m * m * m * 4;
+	}
 }
 
 float FCEasing::EaseInQuart(float t)
 {
-	return RobertPennerEasing::EaseInQuart(t);
+	return t * t * t * t;
 }
 
 float FCEasing::EaseOutQuart(float t)
 {
-	return RobertPennerEasing::EaseOutQuart(t);
+	float m = t - 1;
+	return 1 - m * m * m * m;
 }
 
 float FCEasing::EaseInOutQuart(float t)
 {
-	return RobertPennerEasing::EaseInOutQuart(t);
+	float t2 = t * 2;
+	if (t2 < 1)
+	{
+		return t * t2 * t2 * t2;
+	}
+	else
+	{
+		float m = t - 1;
+		return 1 - m * m * m * m * 8;
+	}
 }
 
 float FCEasing::EaseInQuint(float t)
 {
-	return RobertPennerEasing::EaseInQuint(t);
+	return t * t * t * t * t;
 }
 
 float FCEasing::EaseOutQuint(float t)
 {
-	return RobertPennerEasing::EaseOutQuint(t);
+	float m = t - 1;
+	return 1 + m * m * m * m * m;
 }
 
 float FCEasing::EaseInOutQuint(float t)
 {
-	return RobertPennerEasing::EaseInOutQuint(t);
+	float t2 = t * 2;
+	if (t2 < 1)
+	{
+		return t * t2 * t2 * t2 * t2;
+	}
+	else
+	{
+		float m = t - 1;
+		return 1 + m * m * m * m * m * 16;
+	}
 }
 
 float FCEasing::EaseInExpo(float t)
 {
-	return RobertPennerEasing::EaseInExpo(t);
+	if (t <= 0)
+	{
+		return 0;
+	}
+	if (t >= 1)
+	{
+		return 1;
+	}
+	return FMath::Pow(2, 10 * (t - 1));
 }
 
 float FCEasing::EaseOutExpo(float t)
 {
-	return RobertPennerEasing::EaseOutExpo(t);
+	if (t <= 0)
+	{
+		return 0;
+	}
+	if (t >= 1)
+	{
+		return 1;
+	}
+	return 1 - FMath::Pow(2, -10 * t);
 }
 
 float FCEasing::EaseInOutExpo(float t)
 {
-	return RobertPennerEasing::EaseInOutExpo(t);
+	if (t <= 0)
+	{
+		return 0;
+	}
+	if (t >= 1)
+	{
+		return 1;
+	}
+	if (t < 0.5f)
+	{
+		return FMath::Pow(2, 10 * (2 * t - 1) - 1);
+	}
+	else
+	{
+		return 1 - FMath::Pow(2, -10 * (2 * t - 1) - 1);
+	}
 }
 
 float FCEasing::EaseInCirc(float t)
 {
-	return RobertPennerEasing::EaseInCirc(t);
+	return 1 - FMath::Sqrt(1 - t * t);
 }
 
 float FCEasing::EaseOutCirc(float t)
 {
-	return RobertPennerEasing::EaseOutCirc(t);
+	float m = t - 1;
+	return FMath::Sqrt(1 - m * m);
 }
 
 float FCEasing::EaseInOutCirc(float t)
 {
-	return RobertPennerEasing::EaseInOutCirc(t);
+	float t2 = t * 2;
+	if (t2 < 1)
+	{
+		return (1 - FMath::Sqrt(1 - t2 * t2)) * .5f;
+	}
+	else
+	{
+		float m = t - 1;
+		return (FMath::Sqrt(1 - 4 * m * m) + 1) * .5f;
+	}
 }
 
 float FCEasing::EaseInElastic(float t, float Amplitude, float Period)
 {
-	return PhaserEasing::EaseInElastic(t, Amplitude, Period);
+	if (t == 0)
+	{
+		return 0;
+	}
+	else if (t == 1)
+	{
+		return 1;
+	}
+	else
+	{
+		float m = t - 1;
+		float s = Period / 4.0f;
+		if (Amplitude > 1)
+		{
+			s = Period * FMath::Asin(1.0f / Amplitude) / (2.0f * PI);
+		}
+
+		return -(Amplitude * FMath::Pow(2, 10 * m) * FMath::Sin((m - s) * (2.0f * PI) / Period));
+	}
 }
+// baked-in-parameters version
+// float FCTween::EaseInElastic(float t)
+// {
+// 	float m = t - 1;
+// 	return -FMath::Pow(2, 10 * m) * FMath::Sin((m * 40 - 3) * PI / 6);
+// }
 
 float FCEasing::EaseOutElastic(float t, float Amplitude, float Period)
 {
-	return PhaserEasing::EaseOutElastic(t, Amplitude, Period);
+	if (t == 0)
+	{
+		return 0;
+	}
+	else if (t == 1)
+	{
+		return 1;
+	}
+	else
+	{
+		float s = Period / 4.0f;
+		if (Amplitude > 1)
+		{
+			s = Period * FMath::Asin(1.0f / Amplitude) / (2.0f * PI);
+		}
+		return 1.0f + Amplitude * FMath::Pow(2, -10 * t) * FMath::Sin((t - s) * (2.0f * PI) / Period);
+	}
 }
-
+// baked-in-parameters version
+// float FCTween::EaseOutElastic(float t)
+// {
+// 	return 1 + FMath::Pow(2, 10 * (-t)) * FMath::Sin((-t * 40 - 3) * PI / 6);
+// }
 float FCEasing::EaseInOutElastic(float t, float Amplitude, float Period)
 {
-	return PhaserEasing::EaseInOutElastic(t, Amplitude, Period);
+	if (t == 0)
+	{
+		return 0;
+	}
+	else if (t == 1)
+	{
+		return 1;
+	}
+	else
+	{
+		float m = 2.0f * t - 1;
+		float s = Period / 4.0f;
+		if (Amplitude > 1)
+		{
+			s = Period * FMath::Asin(1.0f / Amplitude) / (2.0f * PI);
+		}
+
+		if (m < 0)
+		{
+			return .5f * -(Amplitude * FMath::Pow(2, 10 * m) * FMath::Sin((m - s) * (2.0f * PI) / Period));
+		}
+		else
+		{
+			return 1.0f + .5f * (Amplitude * FMath::Pow(2, -10 * t) * FMath::Sin((t - s) * (2.0f * PI) / Period));
+		}
+	}
 }
+// baked-in-parameters version
+// float FCTween::EaseInOutElastic(float t)
+// {
+// 	float s = 2 * t - 1;
+// 	float k = (80 * s - 9) * PI / 18;
+// 	if (s < 0)
+// 	{
+// 		return -.5f * FMath::Pow(2, 10 * s) * FMath::Sin(k);
+// 	}
+// 	else
+// 	{
+// 		return 1 + .5f * FMath::Pow(2, -10 * s) * FMath::Sin(k);
+// 	}
+// }
 
 float FCEasing::EaseInBounce(float t)
 {
-	return RobertPennerEasing::EaseInBounce(t);
+	return 1 - EaseOutBounce(1 - t);
 }
 
 float FCEasing::EaseOutBounce(float t)
 {
-	return RobertPennerEasing::EaseOutBounce(t);
+	float t2;
+
+	if (t < BOUNCE_K1)
+	{
+		return BOUNCE_K0 * t * t;
+	}
+	else if (t < BOUNCE_K2)
+	{
+		t2 = t - BOUNCE_K3;
+		return BOUNCE_K0 * t2 * t2 + 0.75f;
+	}
+	else if (t < BOUNCE_K4)
+	{
+		t2 = t - BOUNCE_K5;
+		return BOUNCE_K0 * t2 * t2 + 0.9375f;
+	}
+	else
+	{
+		t2 = t - BOUNCE_K6;
+		return BOUNCE_K0 * t2 * t2 + 0.984375f;
+	}
 }
 
 float FCEasing::EaseInOutBounce(float t)
 {
-	return RobertPennerEasing::EaseInOutBounce(t);
+	float t2 = t * 2;
+	if (t2 < 1)
+	{
+		return .5f - .5f * EaseOutBounce(1 - t2);
+	}
+	else
+	{
+		return .5f + .5f * EaseOutBounce(t2 - 1);
+	}
 }
 
 float FCEasing::EaseInBack(float t, float Overshoot)
 {
-	return RobertPennerEasing::EaseInBack(t, Overshoot);
+	return t * t * ((Overshoot + 1) * t - Overshoot);
 }
 
 float FCEasing::EaseOutBack(float t, float Overshoot)
 {
-	return RobertPennerEasing::EaseOutBack(t, Overshoot);
+	float m = t - 1;
+	return 1 + m * m * (m * (Overshoot + 1) + Overshoot);
 }
 
 float FCEasing::EaseInOutBack(float t, float Overshoot)
 {
-	return RobertPennerEasing::EaseInOutBack(t, Overshoot);
+	float t2 = t * 2;
+	float s = Overshoot * BACK_INOUT_OVERSHOOT_MODIFIER;
+	if (t < .5f)
+	{
+		return t * t2 * (t2 * (s + 1) - s);
+	}
+	else
+	{
+		float m = t - 1;
+		return 1 + 2 * m * m * (2 * m * (s + 1) + s);
+	}
 }
